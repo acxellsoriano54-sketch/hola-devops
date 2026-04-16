@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Clonar repo
+      uses: actions/checkout@v3
+
+    - name: Instalar Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.10
+
+    - name: Instalar dependencias
+      run: |
+        cd app
+        pip install -r requirements.txt
+
+    - name: Ejecutar pruebas
+      run: |
+        cd app
+        python test_app.py
+
+    - name: Login Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USER }}
+        password: ${{ secrets.DOCKER_PASS }}
+
+    - name: Build imagen
+      run: docker build -t ${{ secrets.DOCKER_USER }}/hola-devops .
+
+    - name: Push imagen
+      run: docker push ${{ secrets.DOCKER_USER }}/hola-devops
+
+    - name: Deploy en Render
+      run: |
+        curl -X POST https://api.render.com/deploy/srv-XXXXX \
+        -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
