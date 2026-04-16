@@ -9,38 +9,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-    - name: Clonar repo
+    - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Instalar Python
+    - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.10
+        python-version: '3.10'
 
-    - name: Instalar dependencias
+    - name: Install dependencies
       run: |
         cd app
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Ejecutar pruebas
+    - name: Run tests
       run: |
         cd app
         python test_app.py
 
-    - name: Login Docker Hub
+    - name: Login to DockerHub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USER }}
         password: ${{ secrets.DOCKER_PASS }}
 
-    - name: Build imagen
+    - name: Build Docker image
       run: docker build -t ${{ secrets.DOCKER_USER }}/hola-devops .
 
-    - name: Push imagen
+    - name: Push Docker image
       run: docker push ${{ secrets.DOCKER_USER }}/hola-devops
-
-    - name: Deploy en Render
-      run: |
-        curl -X POST https://api.render.com/deploy/srv-XXXXX \
-        -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
